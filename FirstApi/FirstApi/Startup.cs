@@ -1,4 +1,6 @@
 using FirstApi.DAL;
+using FirstApi.Service.Implementation;
+using FirstApi.Service.Interface;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -29,6 +31,8 @@ namespace FirstApi
         {
             services.AddControllers();
             services.AddDbContext<AppDbContext>(db => db.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddAutoMapper(typeof(Startup));
+            services.AddScoped<IEmployeeService, EmployeeService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

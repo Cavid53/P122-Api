@@ -1,5 +1,7 @@
 ﻿using FirstApi.DAL;
+using FirstApi.DTO;
 using FirstApi.Models;
+using FirstApi.Service.Interface;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -13,69 +15,60 @@ namespace FirstApi.Controllers
     [Route("api/[controller]/[action]")]
     public class EmployeeController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IEmployeeService _employeeService;
 
-        public EmployeeController(AppDbContext context)
+        public EmployeeController(IEmployeeService employeeService)
         {
-            _context = context;
+            _employeeService = employeeService;
         }
 
         [HttpGet]
         public ActionResult GetEmployees()
         {
-            var employees = _context.Employees.ToList();
-
-            if (employees is null)
-                return NotFound();
-
-            return Ok(employees);
+            return Ok(_employeeService.GetAllEmployees());
         }
 
         [HttpGet]
         [Route ("{id}")]
-        public ActionResult GetEmployeeById(int id)
+        public ActionResult GetEmployee(int id)
         {
-            var employee = _context.Employees.FirstOrDefault(m => m.Id == id);
-            if (employee is null)
+            var employee = _employeeService.GetEmployeeById(id);
+
+            if (employee == null)
                 return NotFound();
 
             return Ok(employee);
         }
 
         [HttpPost]
-        public ActionResult Create([FromBody] Employee employee)
+        public ActionResult Create([FromBody] EmployeeDTO employee)
         {
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            _context.Employees.Add(employee);
-            _context.SaveChanges();
+            _employeeService.Create(employee);
 
-            return Ok(employee);
-
+            return Ok();
         }
 
         [HttpPut]
-        [Route("{id}")]
-        public ActionResult Edit(int id, [FromBody] Employee employee)
+        [Route ("{id}")]
+        public ActionResult Edit(int id, [FromBody] EmployeeDTO employee)
         {
-            var employeeDb = _context.Employees.FirstOrDefault(m => m.Id == id);
+            if (!ModelState.IsValid)
+                return BadRequest();
 
-            if (employeeDb is null)
-                return NotFound();
-
-            employee.Id = employeeDb.Id;
-            employeeDb.FullName = employee.FullName;
-            employeeDb.Age = employee.Age;
-            employeeDb.Address = employee.Address;
-
-            _context.SaveChanges();
-
-            return Ok(employee);
-
+            return Ok(_employeeService.Edit(id, employee));
+            
         }
 
-        
+        [HttpDelete]
+        [Route("{id}")]
+        public ActionResult Delete(int id)
+        {
+            return Ok(_employeeService.Delete(id));
+        }
+
 
     }
 }
